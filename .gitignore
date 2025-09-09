@@ -1,0 +1,114 @@
+# Large datasets and processed data
+data/3DPW/
+data/3DPW_processed/
+data/annotations/
+data/splits/
+
+# Model checkpoints and training outputs
+checkpoints/
+outputs/
+experiments/
+
+# 3D assets and large files
+assets/hdr/
+assets/fbx/
+assets/demo_images/
+src/render/houdini/scenes/backup/
+src/render/houdini/scenes/geo/
+src/render/houdini/scenes/cache/
+src/render/houdini/scenes/*.hiplc
+*.fbx
+*.exr
+*.rat
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+conda-meta/
+
+# IDE and development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Claude Code workspace
+.claude/
+.claudeignore
+
+# System files
+nul
+*.tmp
+*.temp
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs and debugging
+*.log
+logs/
+debug.log
+
+# Large numpy arrays (except essential metadata)
+*.npy
+!data/meta/bone_lengths.npy
+!data/meta/rest_pose_data.npy
+
+# Videos and large media
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.jpg
+*.jpeg
+*.png
+*.gif
+!README_assets/
+
+# Temporary and cache directories
+tmp/
+temp/
+cache/
+.cache/
+
+# Configuration files with sensitive data
+config.json
+settings.json
+secrets.json
