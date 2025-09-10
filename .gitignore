@@ -111,4 +111,5 @@ cache/
 # Configuration files with sensitive data
 config.json
 settings.json
-secrets.json
+secrets.json"*.bgeo.sc" 
+"src/render/" 

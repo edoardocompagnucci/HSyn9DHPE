@@ -3,9 +3,8 @@ import glob
 import random
 
 PREFIX_PERCENTAGES = {
-    "SMPL24_Anim_Syn": 0.0,
-    "SMPL24_Anim_CMU": 0.0,
-    "SMPL24_Anim_Rokoko": 0.05,
+    "SMPL24_Anim_CMU": 1.0,
+    "SMPL24_Anim_Rokoko": 1.0,
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
