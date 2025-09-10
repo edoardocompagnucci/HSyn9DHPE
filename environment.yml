@@ -1,8 +1,9 @@
-name: 3dhpe_a
+name: hsyn6dhpe
 channels:
   - pytorch
   - nvidia
   - conda-forge
+  - defaults
 dependencies:
   - python=3.10
   - pytorch=2.1.0
@@ -10,13 +11,23 @@ dependencies:
   - torchaudio=2.1.0
   - pytorch-cuda=11.8
   - numpy=1.26.4
-  - fsspec>=2022.11
-  - requests=2.31
   - opencv
   - matplotlib
+  - tqdm
+  - scipy
+  - pillow
+  - fsspec>=2022.11
+  - requests=2.31
   - pip
   - pip:
+      # MMPose ecosystem
       - mmengine>=0.10.2
       - mmcv==2.1.0
       - mmdet>=3.3.0
-      - openmim>=0.3
+      - mmpose>=1.3.0
+      - openmim>=0.3.2
+      
+      # Additional dependencies
+      - imageio
+      - imageio-ffmpeg
+      - setuptools

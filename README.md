@@ -1,4 +1,4 @@
-# HSyn6DHPE: 6D Human Pose Estimation with Synthetic Data
+# HSyn6DHPE: 6D Human Pose Estimation using Houdini-Generated Synthetic Data
 
 A GraphFormer-based approach for 2D-to-3D human pose estimation achieving **60mm PA-MPJPE** on the 3DPW dataset using procedurally augmented synthetic data generated from multi-source motion capture animations through a custom Houdini pipeline.
 
@@ -8,6 +8,7 @@ This project implements a data-efficient approach to 3D human pose estimation by
 
 ### Key Features
 
+- **End-to-End Pipeline**: MMPose COCO WholeBody detection → 3D pose lifting
 - **Multi-Source Motion Data**: CMU MoCap + Mixamo + Rokoko animations
 - **Houdini Pipeline**: Automated retargeting and augmentation workflow
 - **Physics-Based Cameras**: Realistic viewpoint sampling
@@ -48,22 +49,27 @@ The training dataset uses CMU, Mixamo and Rokoko motion capture data.
 git clone https://github.com/edoardocompagnucci/HSyn6DHPE.git
 cd HSyn6DHPE
 
-# Install dependencies (environment.yml not included - see requirements below)
-# pip install torch torchvision mmpose matplotlib numpy opencv-python tqdm
+# Create conda environment
+conda env create -f environment.yml
+conda activate hsyn6dhpe
+
+# Install MMPose models (required for inference)
+mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 --dest checkpoints/
 ```
 
 ### Requirements
-- Python 3.8+
-- PyTorch
-- MMPose (for 2D pose detection)
-- OpenCV
-- NumPy, Matplotlib, tqdm
+- Python 3.10
+- PyTorch 2.1.0 with CUDA 11.8
+- MMPose ≥1.3.0 (with COCO WholeBody models)
+- OpenCV, NumPy, Matplotlib, tqdm
 
 ## Usage
 
+### Inference
 ```bash
 cd src
 python inference.py path/to/video.mp4 path/to/output/
+```
 
 ## Architecture
 
@@ -71,6 +77,8 @@ The GraphFormer processes 2D keypoints through:
 1. **Input encoding** with joint embeddings
 2. **Transformer layers** with self-attention and graph convolution
 3. **Output heads** for 3D positions and 6D rotations
+
+*Architecture inspired by GraFormer (Zheng et al., 2021) with adaptations for 6D rotation prediction.*
 
 ## Dataset Attribution
 
@@ -85,8 +93,21 @@ This project uses motion capture data from Carnegie Mellon University:
 ### SMPL Model
 The SMPL (Skinned Multi-Person Linear) model is used for pose representation:
 - **License**: SMPL Model License (https://smpl.is.tue.mpg.de/modellicense)
-- **Citation**: As specified on https://smpl.is.tue.mpg.de
 - **Commercial Use**: See LICENSE.md for commercial licensing information
+
+```bibtex
+@article{SMPL:2015,
+    author = {Loper, Matthew and Mahmood, Naureen and Romero, Javier and Pons-Moll, Gerard and Black, Michael J.},
+    title = {{SMPL}: A Skinned Multi-Person Linear Model},
+    journal = {ACM Trans. Graphics (Proc. SIGGRAPH Asia)},
+    month = oct,
+    number = {6},
+    pages = {248:1--248:16},
+    publisher = {ACM},
+    volume = {34},
+    year = {2015}
+}
+```
 
 ### 3DPW Dataset
 Validation performed on the 3D Poses in the Wild dataset:
@@ -108,7 +129,7 @@ If you use this work, please cite:
 
 ```bibtex
 @software{HSyn6DHPE2025,
-    title = {HSyn6DHPE: 6D Human Pose Estimation with Synthetic Data},
+    title = {HSyn6DHPE: 6D Human Pose Estimation using Houdini-Generated Synthetic Data},
     author = {Compagnucci, Edoardo},
     year = {2025},
     url = {https://github.com/edoardocompagnucci/HSyn6DHPE}
