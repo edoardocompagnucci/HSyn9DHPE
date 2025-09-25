@@ -3,6 +3,7 @@ from datetime import datetime
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+import glob
 
 from data.mixed_pose_dataset import create_dataset
 from models.graphformer import GraphFormerPose
@@ -13,6 +14,29 @@ from utils.losses import (
     rotation_error_metric
 )
 from utils.transforms import NormalizerJoints2d
+
+
+def find_latest_checkpoint(checkpoint_dir):
+    """Find the latest checkpoint in the experiment directory"""
+    checkpoint_files = glob.glob(os.path.join(checkpoint_dir, "checkpoint_epoch_*.pth"))
+    if not checkpoint_files:
+        return None, 0
+    
+    # Extract epoch numbers and find the latest
+    epochs = []
+    for ckpt in checkpoint_files:
+        try:
+            epoch_num = int(ckpt.split("epoch_")[1].split(".pth")[0])
+            epochs.append((epoch_num, ckpt))
+        except:
+            continue
+    
+    if not epochs:
+        return None, 0
+    
+    # Return path to latest checkpoint and epoch number
+    latest = max(epochs, key=lambda x: x[0])
+    return latest[1], latest[0]
 
 
 def warmup_lr(epoch, base_lr=1e-5, warmup_epochs=5):
@@ -60,13 +84,15 @@ def compute_joint_group_errors(pred_pos, target_pos, visibility_mask=None):
 
 
 def main():
+    RESUME_FROM = None
+    
     # Paths
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "data"))
     CHECKPOINT_ROOT = "checkpoints"
 
     # Training hyperparameters
-    BATCH_SIZE = 48
+    BATCH_SIZE = 64
     ACCUMULATION_STEPS = 2
     DROPOUT_RATE = 0.1
     LEARNING_RATE = 8e-5
@@ -96,8 +122,8 @@ def main():
     # Training control
     early_stopping_patience = 40
     early_stopping_counter = 0
-    CHECKPOINT_EVERY_N_EPOCHS = 25
-    EVAL_EVERY_N_EPOCHS = 10
+    CHECKPOINT_EVERY_N_EPOCHS = 1
+    EVAL_EVERY_N_EPOCHS = 5
     VALIDATE_EVERY_N_EPOCHS = 1
 
     # Device setup
@@ -128,14 +154,14 @@ def main():
         confidence_mode=CONFIDENCE_MODE
     )
     
-    # Create data loaders
+    # Create data loaders with optimizations
     train_loader = DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE, 
         shuffle=True,
-        num_workers=4,
+        num_workers=6,
         pin_memory=True,
-        persistent_workers=True,
+        persistent_workers=False,
         prefetch_factor=2,
         drop_last=True
     )
@@ -144,9 +170,9 @@ def main():
         val_dataset,   
         batch_size=BATCH_SIZE, 
         shuffle=False,
-        num_workers=2,
+        num_workers=2,  # Keep low for validation
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=False  # Safer for NPZ files
     )
     
     # Create model
@@ -174,22 +200,57 @@ def main():
         optimizer, mode='min', factor=0.8, patience=5, verbose=True
     )
 
-    # Create experiment directory
-    os.makedirs(CHECKPOINT_ROOT, exist_ok=True)
-    exp_name = f"train_{datetime.now():%Y%m%d_%H%M%S}_graphformer"
-    experiment_dir = os.path.join(CHECKPOINT_ROOT, exp_name)
-    os.makedirs(experiment_dir, exist_ok=True)
-    print(f"Experiment directory: {experiment_dir}")
-
-    # Training state
+    # Initialize training state
+    start_epoch = 1
     best_val_mpjpe = float("inf")
     best_val_pa_mpjpe = float("inf")
     best_epoch = 0
+    training_history = []
+    
+    # Handle checkpoint resuming
+    if RESUME_FROM and os.path.isdir(RESUME_FROM):
+        experiment_dir = RESUME_FROM
+        checkpoint_path, last_epoch = find_latest_checkpoint(experiment_dir)
+        
+        if checkpoint_path and os.path.exists(checkpoint_path):
+            print(f"Resuming from checkpoint: {checkpoint_path}")
+            checkpoint = torch.load(checkpoint_path)
+            
+            # Load model state
+            model.load_state_dict(checkpoint['model_state_dict'])
+            
+            # Load optimizer state
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            
+            # Load scheduler state
+            scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            
+            # Load training state
+            start_epoch = checkpoint['epoch'] + 1
+            best_val_mpjpe = checkpoint.get('best_val_mpjpe', float('inf'))
+            best_val_pa_mpjpe = checkpoint.get('best_val_pa_mpjpe', float('inf'))
+            best_epoch = checkpoint.get('best_epoch', 0)
+            early_stopping_counter = checkpoint.get('early_stopping_counter', 0)
+            training_history = checkpoint.get('training_history', [])
+            
+            print(f"Resumed from epoch {checkpoint['epoch']}")
+            print(f"Best PA-MPJPE so far: {best_val_pa_mpjpe:.2f}mm at epoch {best_epoch}")
+            print(f"Early stopping counter: {early_stopping_counter}/{early_stopping_patience}")
+        else:
+            print(f"No valid checkpoint found in {experiment_dir}, starting fresh")
+            os.makedirs(experiment_dir, exist_ok=True)
+    else:
+        # Create new experiment directory
+        os.makedirs(CHECKPOINT_ROOT, exist_ok=True)
+        exp_name = f"train_{datetime.now():%Y%m%d_%H%M%S}_graphformer"
+        experiment_dir = os.path.join(CHECKPOINT_ROOT, exp_name)
+        os.makedirs(experiment_dir, exist_ok=True)
+        print(f"New experiment directory: {experiment_dir}")
     
     # Training loop
     print("Starting training...")
     
-    for epoch in range(1, NUM_EPOCHS + 1):
+    for epoch in range(start_epoch, NUM_EPOCHS + 1):
         # Apply learning rate warmup
         if USE_WARMUP and epoch <= WARMUP_EPOCHS:
             current_lr = warmup_lr(epoch - 1, LEARNING_RATE, WARMUP_EPOCHS)
@@ -530,7 +591,9 @@ def main():
                 best_model_path = os.path.join(experiment_dir, "best_model.pth")
                 torch.save({
                     "epoch": best_epoch,
-                    "model_state": model.state_dict(),
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scheduler_state_dict": scheduler.state_dict(),
                     "val_mpjpe": best_val_mpjpe,
                     "val_pa_mpjpe": best_val_pa_mpjpe,
                     "val_rot_error": avg_val_rot_error,
@@ -540,6 +603,11 @@ def main():
                         "pck_150": avg_pck_150
                     },
                     "train_mpjpe": avg_train_mpjpe,
+                    "best_epoch": best_epoch,
+                    "best_val_mpjpe": best_val_mpjpe,
+                    "best_val_pa_mpjpe": best_val_pa_mpjpe,
+                    "early_stopping_counter": early_stopping_counter,
+                    "training_history": training_history,
                     "model_type": "graphformer",
                     "model_config": {
                         "dim": 384,
@@ -564,15 +632,28 @@ def main():
                 if early_stopping_counter >= early_stopping_patience:
                     print(f"\nEarly stopping at epoch {epoch}")
                     break
+            
+            # Store history
+            if epoch % VALIDATE_EVERY_N_EPOCHS == 0:
+                training_history.append({
+                    'epoch': epoch,
+                    'train_mpjpe': avg_train_mpjpe,
+                    'val_mpjpe': avg_val_mpjpe,
+                    'val_pa_mpjpe': avg_val_pa_mpjpe,
+                    'val_rot_error': avg_val_rot_error,
+                    'pck_50': avg_pck_50,
+                    'pck_100': avg_pck_100,
+                    'pck_150': avg_pck_150
+                })
 
         # Save checkpoint at intervals
         if epoch % CHECKPOINT_EVERY_N_EPOCHS == 0:
             checkpoint_path = os.path.join(experiment_dir, f"checkpoint_epoch_{epoch}.pth")
             torch.save({
                 "epoch": epoch,
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-                "scheduler_state": scheduler.state_dict(),
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
                 "val_mpjpe": avg_val_mpjpe if epoch % VALIDATE_EVERY_N_EPOCHS == 0 else best_val_mpjpe,
                 "val_pa_mpjpe": avg_val_pa_mpjpe if epoch % VALIDATE_EVERY_N_EPOCHS == 0 else best_val_pa_mpjpe,
                 "val_rot_error": avg_val_rot_error if epoch % VALIDATE_EVERY_N_EPOCHS == 0 else 0,
@@ -581,6 +662,11 @@ def main():
                     "pck_100": avg_pck_100,
                     "pck_150": avg_pck_150
                 } if epoch % VALIDATE_EVERY_N_EPOCHS == 0 else None,
+                "best_epoch": best_epoch,
+                "best_val_mpjpe": best_val_mpjpe,
+                "best_val_pa_mpjpe": best_val_pa_mpjpe,
+                "early_stopping_counter": early_stopping_counter,
+                "training_history": training_history,
                 "model_type": "graphformer",
                 "model_config": {
                     "dim": 384,
@@ -612,7 +698,7 @@ def main():
     final_path = os.path.join(experiment_dir, "final_model.pth")
     torch.save({
         "epoch": epoch,
-        "model_state": model.state_dict(),
+        "model_state_dict": model.state_dict(),
         "best_val_mpjpe": best_val_mpjpe,
         "best_val_pa_mpjpe": best_val_pa_mpjpe,
         "best_epoch": best_epoch,

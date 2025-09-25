@@ -242,7 +242,7 @@ def main():
     
     args = parser.parse_args()
     
-    checkpoint = 'checkpoints/train_20250905_230529_graphformer_detected_pa_mpjpe/best_model.pth'
+    checkpoint = r'checkpoints\train_20250924_233613_graphformer\best_model.pth'
     skip_frames = 1
     max_frames = None
     visualize_3d = False

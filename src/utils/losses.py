@@ -6,16 +6,28 @@ from utils.rotation_utils import rot_6d_to_matrix
 
 _bone_data_loaded = False
 _edges = None
+_bone_lengths_matrix = None
 
 
 def _load_bone_data():
-    global _bone_data_loaded, _edges
+    global _bone_data_loaded, _edges, _bone_lengths_matrix
     
     if _bone_data_loaded:
         return
 
     from .skeleton import SMPL_SKELETON
     _edges = SMPL_SKELETON
+    
+    # Load precomputed bone lengths
+    import numpy as np
+    bone_length_path = os.path.join(os.path.dirname(__file__), "../../data/meta/bone_length.npy")
+    if os.path.exists(bone_length_path):
+        _bone_lengths_matrix = torch.from_numpy(np.load(bone_length_path)).float()
+        print(f"Loaded bone lengths from {bone_length_path}")
+    else:
+        print(f"Warning: bone_length.npy not found at {bone_length_path}")
+        print("Run 'python scripts/make_bone_length.py' to generate it")
+        _bone_lengths_matrix = None
     
     _bone_data_loaded = True
 
@@ -272,41 +284,68 @@ def geodesic_loss(pred_6d, target_6d):
     return geodesic_dist.mean()
 
 
-def bone_length_consistency_loss(predicted_poses, target_poses):
-    """Ensure predicted bone lengths match the GT skeleton's proportions"""
+def bone_length_consistency_loss(predicted_poses, target_poses=None):
+    """Ensure predicted bone lengths match the fixed skeleton bone lengths
+    
+    Since all your synthetic data has the same bone lengths, we directly
+    compare predicted bones to the precomputed fixed lengths.
+    
+    Args:
+        predicted_poses: Predicted 3D joint positions [B, 24*3] or [B, 24, 3]
+        target_poses: Not used (kept for compatibility)
+    """
     _load_bone_data()
     
+    if _bone_lengths_matrix is None:
+        # If bone lengths not loaded, return zero loss
+        print("Warning: Bone lengths not loaded, skipping bone consistency loss")
+        return torch.tensor(0.0, device=predicted_poses.device)
+    
     batch_size = predicted_poses.shape[0]
+    device = predicted_poses.device
     
     if predicted_poses.dim() == 2:
         predicted_poses = predicted_poses.reshape(batch_size, 24, 3)
-    if target_poses.dim() == 2:
-        target_poses = target_poses.reshape(batch_size, 24, 3)
     
-    gt_lengths = []
-    pred_lengths = []
+    # Move bone length matrix to correct device
+    bone_matrix = _bone_lengths_matrix.to(device)
+    
+    # Compute predicted bone lengths and compare to fixed lengths
+    bone_errors = []
     
     for parent, child in _edges:
-        gt_bone = target_poses[:, child] - target_poses[:, parent]
-        gt_length = torch.norm(gt_bone, dim=-1)
-        gt_lengths.append(gt_length)
-        
+        # Predicted bone vector and length
         pred_bone = predicted_poses[:, child] - predicted_poses[:, parent]
-        pred_length = torch.norm(pred_bone, dim=-1)
-        pred_lengths.append(pred_length)
+        pred_length = torch.norm(pred_bone, dim=-1)  # [B]
+        
+        # Fixed target length from precomputed matrix
+        target_length = bone_matrix[parent, child]  # scalar
+        
+        # Compute error for this bone
+        error = (pred_length - target_length) ** 2
+        bone_errors.append(error)
     
-    gt_lengths = torch.stack(gt_lengths, dim=1)
-    pred_lengths = torch.stack(pred_lengths, dim=1)
+    # Stack all bone errors
+    bone_errors = torch.stack(bone_errors, dim=1)  # [B, num_bones]
     
-    ref_bone_idx = 0
+    # Weight different bones (optional - emphasize limbs)
+    bone_weights = torch.ones(len(_edges), device=device)
     
-    gt_ref_length = gt_lengths[:, ref_bone_idx:ref_bone_idx+1] + 1e-6
-    pred_ref_length = pred_lengths[:, ref_bone_idx:ref_bone_idx+1] + 1e-6
+    # Give more weight to limb bones
+    for idx, (parent, child) in enumerate(_edges):
+        # Legs
+        if parent in [1, 2, 4, 5, 7, 8] or child in [4, 5, 7, 8, 10, 11]:
+            bone_weights[idx] = 1.5
+        # Arms  
+        elif parent in [16, 17, 18, 19, 20, 21] or child in [18, 19, 20, 21, 22, 23]:
+            bone_weights[idx] = 1.5
+        # Spine (less weight as it can have more variation)
+        elif parent in [0, 3, 6, 9, 12] or child in [3, 6, 9, 12, 15]:
+            bone_weights[idx] = 0.8
     
-    gt_normalized = gt_lengths / gt_ref_length
-    pred_normalized = pred_lengths / pred_ref_length
-    
-    loss = torch.mean((pred_normalized - gt_normalized) ** 2)
+    # Apply weights and compute mean
+    weighted_errors = bone_errors * bone_weights.unsqueeze(0)
+    loss = torch.mean(weighted_errors)
     
     return loss
 

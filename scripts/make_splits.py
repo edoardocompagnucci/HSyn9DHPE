@@ -3,18 +3,21 @@ import glob
 import random
 
 PREFIX_PERCENTAGES = {
-    "SMPL24_Anim_CMU": 1.0,
-    "SMPL24_Anim_Rokoko": 1.0,
+    "AMASS": 1.0,  # For AMASS data
+    # Add other prefixes as needed
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "data"))
-ANN_DIR = os.path.join(DATA_ROOT, "annotations", "joints_2d")
+ANN_DIR = os.path.join(DATA_ROOT, "annotations")  # Now points to annotations root
 SPLITS_DIR = os.path.join(DATA_ROOT, "splits")
 os.makedirs(SPLITS_DIR, exist_ok=True)
 
-files = glob.glob(os.path.join(ANN_DIR, "*.npy"))
+# Look for NPZ files instead of NPY
+files = glob.glob(os.path.join(ANN_DIR, "*.npz"))
 all_frame_ids = [os.path.splitext(os.path.basename(f))[0] for f in files]
+
+print(f"Found {len(files)} NPZ files in {ANN_DIR}")
 
 frame_ids_by_prefix = {}
 for prefix in PREFIX_PERCENTAGES.keys():
@@ -39,7 +42,7 @@ for prefix, percentage in PREFIX_PERCENTAGES.items():
     print(f"Selected {num_to_select} ({percentage*100:.1f}%) out of {len(prefix_ids)} '{prefix}' files")
 
 if not selected_frame_ids:
-    raise RuntimeError(f"No .npy files selected from {ANN_DIR}")
+    raise RuntimeError(f"No .npz files selected from {ANN_DIR}")
 
 random.shuffle(selected_frame_ids)
 

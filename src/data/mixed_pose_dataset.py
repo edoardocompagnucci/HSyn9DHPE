@@ -5,6 +5,8 @@ import torch
 from torch.utils.data import Dataset
 from typing import Dict, Union
 import random
+import zipfile
+import time
 
 from utils.rotation_utils import rot_matrix_to_6d
 
@@ -179,27 +181,31 @@ class SyntheticPoseAdapter(Dataset):
         self.use_2d_noise_aug = use_2d_noise_aug
         self.noise_std_base = noise_std_base
         self.noise_prob = noise_prob
-        
         self.is_training = 'train' in split_txt
+        self.annotations_path = os.path.join(data_root, "annotations")
+        
+        self._build_sequence_index(split_txt)
+    
+    def _build_sequence_index(self, split_txt):
+        """Build an index mapping frame IDs to (sequence_file, frame_idx)"""
+        self.sequence_cache = {}
+        self.frame_index = []
         
         with open(split_txt) as f:
-            self.ids = [ln.strip() for ln in f if ln.strip()]
+            sequence_names = [ln.strip() for ln in f if ln.strip()]
         
-        j = lambda *p: os.path.join(data_root, *p)
-        self.paths = dict(
-            joints_2d=j("annotations", "joints_2d"),
-            joints_3d=j("annotations", "joints_3d"),
-            rot_mats=j("annotations", "rot_mats"),
-            visibility=j("annotations", "visibility"),
-            K=j("annotations", "K"),
-            R=j("annotations", "R"),
-            t=j("annotations", "t"),
-            res=j("annotations", "res"),
-            rgb=j("raw", "rgb")
-        )
+        for seq_name in sequence_names:
+            seq_path = os.path.join(self.annotations_path, f"{seq_name}.npz")
+            if os.path.exists(seq_path):
+                with np.load(seq_path) as data:
+                    num_frames = data['num_frames'].item() if 'num_frames' in data else data['joints_3d'].shape[0]
+                
+                for frame_idx in range(num_frames):
+                    self.frame_index.append((seq_name, frame_idx))
+        
     
     def __len__(self) -> int:
-        return len(self.ids)
+        return len(self.frame_index)
 
 
     def add_2d_noise_augmentation(self, joints_2d, visibility_mask, confidence_weights=None, resolution=None):
@@ -389,19 +395,48 @@ class SyntheticPoseAdapter(Dataset):
         
         return confidence
 
-    def load_sample(self, idx):
+    def load_sample(self, idx, retry_count=3):
         """Load a single sample with comprehensive augmentation"""
-        did = self.ids[idx]
-        load = lambda key: np.load(os.path.join(self.paths[key], f"{did}.npy"))
+        seq_name, frame_idx = self.frame_index[idx]
         
-        joints_2d = load("joints_2d")
-        joints_3d = load("joints_3d")
-        rot_mats = load("rot_mats")
-        visibility = load("visibility")
-        K = load("K")
-        R = load("R")
-        t = load("t")
-        res = load("res")
+        # Retry logic for NPZ loading to handle concurrent access issues
+        for attempt in range(retry_count):
+            try:
+                if seq_name not in self.sequence_cache:
+                    seq_path = os.path.join(self.annotations_path, f"{seq_name}.npz")
+                    # Use allow_pickle=False for safety and mmap_mode for memory efficiency
+                    self.sequence_cache[seq_name] = np.load(seq_path, allow_pickle=False, mmap_mode='r')
+                    
+                    if len(self.sequence_cache) > 5:  # Reduce cache size to prevent memory issues
+                        oldest = list(self.sequence_cache.keys())[0]
+                        if hasattr(self.sequence_cache[oldest], 'close'):
+                            self.sequence_cache[oldest].close()
+                        del self.sequence_cache[oldest]
+                
+                data = self.sequence_cache[seq_name]
+                break  # Success, exit retry loop
+            except (IOError, OSError, zipfile.BadZipFile) as e:
+                if attempt < retry_count - 1:
+                    # Clear cache and retry
+                    if seq_name in self.sequence_cache:
+                        if hasattr(self.sequence_cache[seq_name], 'close'):
+                            self.sequence_cache[seq_name].close()
+                        del self.sequence_cache[seq_name]
+                    import time
+                    time.sleep(0.1 * (attempt + 1))  # Brief delay before retry
+                else:
+                    raise e  # Re-raise on final attempt
+        
+        joints_2d = data["joints_2d"][frame_idx]
+        joints_3d = data["joints_3d"][frame_idx]
+        rot_mats = data["rot_mats"][frame_idx]
+        visibility = data["visibility"][frame_idx]
+        K = data["K"][frame_idx]
+        R = data["R"][frame_idx]
+        t = data["t"][frame_idx]
+        res = data["res"][frame_idx]
+        
+        frame_id = f"{seq_name}_frame{frame_idx:04d}"
         
         joints_2d_tensor = torch.tensor(joints_2d, dtype=torch.float32)
         joints_3d_tensor = torch.tensor(joints_3d, dtype=torch.float32)
@@ -435,7 +470,7 @@ class SyntheticPoseAdapter(Dataset):
             "rot_mats": rot_mats_tensor,
             "rot_6d": rot_6d,
             "data_type": "synthetic",
-            "frame_id": did,
+            "frame_id": frame_id,
             "K": K_tensor,
             "R": R_tensor,
             "t": t_tensor,

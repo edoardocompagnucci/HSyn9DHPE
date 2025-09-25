@@ -1,8 +1,10 @@
 # Large datasets and processed data
 data/3DPW/
+data/AMASS/
 data/3DPW_processed/
 data/annotations/
 data/splits/
+data/AMASS/
 
 # Model checkpoints and training outputs
 checkpoints/
