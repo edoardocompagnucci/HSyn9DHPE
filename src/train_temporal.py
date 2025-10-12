@@ -161,7 +161,7 @@ def main():
     )
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.8, patience=5, verbose=True
+        optimizer, mode='min', factor=0.8, patience=5
     )
 
     # Create or resume experiment directory
