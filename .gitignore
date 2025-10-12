@@ -3,6 +3,7 @@ data/3DPW/
 data/AMASS/
 data/3DPW_processed/
 data/annotations/
+data/annotations_tmp/
 data/splits/
 data/AMASS/
 

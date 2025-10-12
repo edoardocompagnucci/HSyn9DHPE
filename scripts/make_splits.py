@@ -3,7 +3,7 @@ import glob
 import random
 
 PREFIX_PERCENTAGES = {
-    "AMASS": 1.0,  # For AMASS data
+    "AMASS": 1.0,  # 50% of AMASS data (~3300 sequences) - balance between quality and training time
     # Add other prefixes as needed
 }
 
