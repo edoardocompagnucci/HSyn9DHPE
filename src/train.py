@@ -549,7 +549,7 @@ def main():
         print(f"  Train - MPJPE: {train_mpjpe_mm:.1f}mm, Pixel Error: {avg_train_pixel_error:.1f}px")
         
         if epoch % VALIDATE_EVERY_N_EPOCHS == 0:
-            print(f"  Val   - MPJPE: {val_mpjpe_mm:.1f}mm, PA-MPJPE: {val_pa_mpjpe_mm:.1f}mm, Rot Error: {avg_val_rot_error:.2f}°")
+            print(f"  Val   - MPJPE: {val_mpjpe_mm:.1f}mm, PA-MPJPE: {val_pa_mpjpe_mm:.1f}mm, Rot Error: {avg_val_rot_error:.2f}deg")
             print(f"          PCK@50mm: {avg_pck_50:.1f}%, PCK@100mm: {avg_pck_100:.1f}%, PCK@150mm: {avg_pck_150:.1f}%")
             print(f"          Pixel Error: {avg_val_pixel_error:.1f}px")
             print(f"          Domain gap: {val_mpjpe_mm - train_mpjpe_mm:.1f}mm")
@@ -574,7 +574,7 @@ def main():
                     'L_Wrist': 20, 'R_Wrist': 21, 'L_Hand': 22, 'R_Hand': 23
                 }
                 for joint_name, joint_idx in key_joints.items():
-                    print(f"    {joint_name:12s}: {avg_per_joint_rot_errors[joint_idx]:.2f}°")
+                    print(f"    {joint_name:12s}: {avg_per_joint_rot_errors[joint_idx]:.2f}deg")
 
         # Save best model
         if epoch % VALIDATE_EVERY_N_EPOCHS == 0:
@@ -624,8 +624,8 @@ def main():
                     }
                 }, best_model_path)
                 
-                print(f"  ✓ New best validation PA-MPJPE: {val_pa_mpjpe_mm:.1f}mm")
-                print(f"  💾 Saved best model")
+                print(f"  New best validation PA-MPJPE: {val_pa_mpjpe_mm:.1f}mm")
+                print(f"  Saved best model")
             else:
                 early_stopping_counter += 1
                 
@@ -675,7 +675,7 @@ def main():
                     "dropout": DROPOUT_RATE
                 }
             }, checkpoint_path)
-            print(f"  💾 Saved checkpoint")
+            print(f"  Saved checkpoint")
 
     # Training complete
     print(f"\n{'='*70}")
@@ -688,7 +688,7 @@ def main():
     # Load best model to get final metrics
     best_checkpoint = torch.load(os.path.join(experiment_dir, "best_model.pth"))
     if "val_rot_error" in best_checkpoint:
-        print(f"  Rotation Error: {best_checkpoint['val_rot_error']:.2f}°")
+        print(f"  Rotation Error: {best_checkpoint['val_rot_error']:.2f}deg")
     if "val_pck" in best_checkpoint:
         print(f"  PCK@50mm: {best_checkpoint['val_pck']['pck_50']:.1f}%")
         print(f"  PCK@100mm: {best_checkpoint['val_pck']['pck_100']:.1f}%")
@@ -715,7 +715,7 @@ def main():
         }
     }, final_path)
     
-    print(f"\n💾 Saved final model → {final_path}")
+    print(f"\nSaved final model -> {final_path}")
 
 
 if __name__ == "__main__":
