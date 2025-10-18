@@ -73,9 +73,12 @@ cd HSyn9DHPE
 
 # Create conda environment
 conda env create -f environment.yml
-conda activate hsyn6dhpe
+conda activate hsyn9dhpe
 
-# Install MMPose models (required for inference)
+# Install mmcv via mim (required before mmpose)
+mim install mmcv==2.1.0
+
+# Download MMPose models (required for inference)
 mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 --dest checkpoints/
 ```
 
