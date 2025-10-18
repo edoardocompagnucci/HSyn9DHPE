@@ -1,6 +1,6 @@
 # HSyn9DHPE: 3D Position + 6D Rotation Human Pose Estimation
 
-**HSyn9DHPE** = Houdini Synthetic 3D position (3D) + 6D rotation representation (6D) = 9D
+Human Pose Estimation using **H**oudini-generated **Syn**thetic data to predict **9D** pose (**3D** positions + **6D** rotations)
 
 A GraphFormer-based approach for 2D-to-3D human pose estimation achieving **57.2mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
 
