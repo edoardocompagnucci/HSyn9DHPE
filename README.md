@@ -71,9 +71,12 @@ The Houdini pipeline generates diverse synthetic cameras using procedural sampli
 git clone https://github.com/edoardocompagnucci/HSyn9DHPE.git
 cd HSyn9DHPE
 
-# Create conda environment (installs all dependencies including mmcv)
+# Create conda environment
 conda env create -f environment.yml
 conda activate hsyn9dhpe
+
+# Install mmcv (required for mmpose)
+mim install mmcv==2.1.0
 
 # Download MMPose models (required for inference)
 mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 --dest checkpoints/
@@ -85,6 +88,8 @@ mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 -
 - MMPose ≥1.3.0 (COCO-WholeBody models)
 - mmcv 2.1.0, mmengine 0.8.4
 - OpenCV, NumPy, Matplotlib, SciPy
+
+**Note:** The environment includes Visual C++ runtime packages (vc, vs2015_runtime) required for PyTorch on Windows.
 
 ## Usage
 
