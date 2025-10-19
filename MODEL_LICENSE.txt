@@ -1,0 +1,79 @@
+HSyn9DHPE MODEL WEIGHTS LICENSE (Non-Commercial Research Only)
+Version 1.0 — 2025-10-19
+Applies to: Model weights released for HSyn9DHPE (checkpoints/*.pth)
+
+By downloading, accessing, or using the HSyn9DHPE model weights ("Weights"), you agree:
+
+1) GRANT — Non-Commercial Research/Education/Art only.
+   You may use the Weights solely for non-commercial scientific research,
+   non-commercial education, or non-commercial artistic projects.
+
+2) PROHIBITED USES — The following uses are strictly prohibited:
+   - Commercial purposes, including incorporation in commercial products,
+     services, or artifacts
+   - Pornographic, military, surveillance, defamatory, or libelous applications
+   - Use for creating misleading, fake, or malicious content, except for
+     analyses in peer-reviewed scientific research
+   - Any use that violates applicable laws or regulations
+
+3) NO COMMERCIAL TRAINING/SERVING — You may not use these Weights to:
+   - Pre-train, fine-tune, or serve systems intended for commercial use
+   - Improve commercial models or commercial products
+   - Train methods, algorithms, neural networks, or other models for
+     commercial purposes
+
+4) NO REDISTRIBUTION OF THIRD-PARTY DATA — You must NOT redistribute AMASS,
+   SMPL, or any third-party data used to train these Weights.
+   You must obtain these datasets directly from their original sources and
+   accept their respective licenses:
+   - AMASS: https://amass.is.tue.mpg.de/
+   - SMPL: https://smpl.is.tue.mpg.de/
+
+5) ATTRIBUTION — If you use these Weights in your research, you must:
+   a) Cite the AMASS dataset (ICCV 2019):
+      @inproceedings{AMASS:2019,
+        title={AMASS: Archive of Motion Capture as Surface Shapes},
+        author={Mahmood, Naureen and Ghorbani, Nima and Troje, Nikolaus F.
+                and Pons-Moll, Gerard and Black, Michael J.},
+        booktitle={The IEEE International Conference on Computer Vision (ICCV)},
+        year={2019}
+      }
+
+   b) Cite this work:
+      @software{HSyn9DHPE2025,
+        title = {HSyn9DHPE: 9D Human Pose Estimation with Houdini Synthetic Data},
+        author = {Compagnucci, Edoardo},
+        year = {2025},
+        url = {https://github.com/edoardocompagnucci/HSyn9DHPE}
+      }
+
+6) TAKEDOWN/CONSENT — If notified of a rights issue or consent withdrawal by:
+   - AMASS rightsholders
+   - SMPL rightsholders
+   - The Author (Edoardo Compagnucci)
+
+   You must immediately delete the Weights and any derivatives.
+
+7) NO RE-IDENTIFICATION/EXTRACTION — You may not attempt to:
+   - Extract original copyrighted motion capture data from the Weights
+   - Re-identify subjects from the training data
+   - Reverse-engineer the training dataset
+
+8) NO WARRANTY / LIMITATION OF LIABILITY — The Weights are provided "AS IS"
+   without warranty of any kind, express or implied. The Author is not liable
+   for any damages arising from the use or inability to use the Weights.
+
+9) DERIVATIVES/FLOW-DOWN — If you create derivative works (fine-tuned models,
+   distilled models, etc.), you may only distribute them under terms no less
+   restrictive than this License.
+
+10) TERMINATION — Any breach of these terms immediately terminates your rights.
+    Upon termination, you must delete the Weights and all derivatives.
+
+Contact: edoardocompagnucci.fx@gmail.com
+Author: Edoardo Compagnucci
+
+---
+
+NOTE: This license governs only the model weights. The source code for HSyn9DHPE
+is licensed separately under Apache-2.0 (see LICENSE file).
