@@ -58,7 +58,7 @@ class PoseEncoderLayer(nn.Module):
 
 class GraphFormerPose(nn.Module):
     """
-    GraphFormer for 3D pose and orientation estimation
+    Graph Transformer for 3D pose and orientation estimation
     2D keypoints (B, 24, 2) → 3D joint pos (B, 24*3) + 6D joint rot (B, 24, 6)
     """
 

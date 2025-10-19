@@ -186,7 +186,7 @@ def main():
     ).to(device)
     
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Model: GraphFormer with {total_params:,} parameters")
+    print(f"Model: Graph Transformer with {total_params:,} parameters")
     
     # Optimizer and scheduler
     optimizer = torch.optim.AdamW(

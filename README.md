@@ -1,8 +1,8 @@
-# HSyn9DHPE: Synthetic Data for 9D Human Pose Estimation
+# HSyn9DHPE: 3D Position + 6D Rotation Human Pose Estimation
 
-*3D Position + 6D Rotation prediction using Houdini-generated synthetic data*
+**HSyn9DHPE** = Houdini Synthetic 3D position (3D) + 6D rotation representation (6D)
 
-A GraphFormer-based approach for 2D-to-3D human pose estimation achieving **57.2mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
+A graph transformer approach for 2D-to-3D human pose estimation achieving **57.2mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
 
 ## Overview
 
@@ -15,7 +15,7 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 - **Root-Centered Training**: Model trained in root-centered coordinate space
 - **AMASS Motion Data**: High-quality motion capture from 6 diverse datasets
 - **End-to-End Inference**: MMPose COCO-WholeBody detection → SMPL mapping → 3D pose lifting
-- **GraphFormer Architecture**: Graph-based transformer for pose lifting
+- **Graph Transformer Architecture**: Combines self-attention with graph convolutions for 2D-to-3D pose lifting and 6D rotation prediction
 - **300K+ Training Samples**: With perfect 3D-2D correspondence
 
 ## Performance
@@ -54,7 +54,7 @@ The Houdini pipeline generates diverse synthetic cameras using procedural sampli
 
 1. **2D Detection**: Run MMPose RTMPose on input video to extract COCO-WholeBody keypoints
 2. **Keypoint Mapping**: Map COCO-WholeBody joints to SMPL skeleton (24 joints)
-3. **Pose Lifting**: Feed normalized 2D keypoints to GraphFormer model
+3. **Pose Lifting**: Feed normalized 2D keypoints to graph transformer model
 4. **Prediction**: Output 3D joint positions (root-centered) and 6D rotation representation
 5. **Post-Processing**: Convert 6D representation to 3x3 rotation matrices
 6. **Optional Smoothing**: Apply Savitzky-Golay smoothing for positions and SLERP for rotations
@@ -75,42 +75,31 @@ cd HSyn9DHPE
 conda env create -f environment.yml
 conda activate hsyn9dhpe
 
-# Install mmcv (required for mmpose)
-mim install mmcv==2.1.0
-
-# Download MMPose models (required for inference)
+# Install MMPose models (required for inference)
 mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 --dest checkpoints/
 ```
 
 ### Requirements
-- Python 3.8
-- PyTorch 2.0.1 with CUDA 11.8
+- Python 3.10
+- PyTorch 2.1.0 with CUDA 11.8
 - MMPose ≥1.3.0 (COCO-WholeBody models)
-- mmcv 2.1.0, mmengine 0.8.4
 - OpenCV, NumPy, Matplotlib, SciPy
-
-**Note:** The environment includes Visual C++ runtime packages (vc, vs2015_runtime) required for PyTorch on Windows.
 
 ## Usage
 
 ### Inference
 
 ```bash
-python src/inference.py path/to/video.mp4 path/to/output/ --checkpoint checkpoints/best_model_57mm.pth --smooth_3d
+cd src
+python inference.py path/to/video.mp4 path/to/output/ --checkpoint path/to/checkpoint.pth --smooth_3d
 ```
-
-**Additional options:**
-- `--visualize_3d`: Generate 3D pose visualization images
-- `--smooth_detections`: Smooth 2D detections to remove outliers
-- `--skip_frames N`: Process every Nth frame (default: 1)
-- `--max_frames N`: Limit processing to N frames
 
 The inference script will:
 1. Extract frames from video
 2. Run MMPose to detect 2D keypoints (COCO-WholeBody format)
 3. Map keypoints to SMPL skeleton
 4. Predict 3D positions and 6D rotations using the trained model
-5. Apply 3D smoothing (Savitzky-Golay for positions + SLERP for rotations)
+5. Apply optional 3D smoothing (Savitzky-Golay + SLERP)
 6. Save results as JSON files for further processing
 
 ## Dataset Attribution
@@ -137,7 +126,6 @@ This project uses motion capture data from the AMASS archive:
   url = {https://accad.osu.edu/research/motion-lab/mocap-system-and-data}
 }
 ```
-License: https://creativecommons.org/licenses/by/3.0/
 
 #### CMU Dataset
 ```bibtex
@@ -194,7 +182,6 @@ Uses the same citations as KIT dataset (joint KIT-CNRS-EKUT-WEIZMANN collaborati
   year = {2015}
 }
 ```
-License: https://smpl.is.tue.mpg.de/modellicense
 
 ### 3DPW Dataset
 
@@ -211,9 +198,18 @@ Evaluation performed on the 3D Poses in the Wild dataset:
 
 ## Architecture
 
-The model uses a GraphFormer architecture adapted for 6D rotation prediction:
+The model uses a **Graph Transformer Encoder** architecture that combines multi-head self-attention with polynomial graph convolutions. Inspired by MeshGraphormer, it features dual prediction heads for 3D positions and 6D rotations, learnable joint embeddings, and operates on joint-level (24 joints) rather than vertex-level representations.
 
+**Key References:**
 ```bibtex
+@inproceedings{lin2021meshgraphormer,
+  title={Mesh Graphormer},
+  author={Lin, Kevin and Wang, Lijuan and Liu, Zicheng},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages={12939--12948},
+  year={2021}
+}
+
 @inproceedings{zhao2022graformer,
   title={GraFormer: Graph Convolution Transformer for 3D Pose Estimation},
   author={Zhao, Weixi and Tian, Yunjie and Ye, Qixiang and Jiao, Jianbin and Wang, Weiqiang},
