@@ -1,6 +1,7 @@
-# HSyn9DHPE: 3D Position + 6D Rotation Human Pose Estimation
+# HSyn9DHPE: 9D Human Pose Estimation with Houdini Synthetic Data
 
-**HSyn9DHPE** = Houdini Synthetic 3D position (3D) + 6D rotation representation (6D)
+**HSyn9DHPE** = **H**oudini **Syn**thetic Data for **9D** **H**uman **P**ose **E**stimation
+(9D = 3D joint positions + 6D rotation representation)
 
 A graph transformer approach for 2D-to-3D human pose estimation achieving **57.2mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
 
@@ -12,11 +13,11 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 
 - **Full Pose Estimation**: Predicts both 3D joint positions and 6D rotation representation
 - **Synthetic Data Pipeline**: Houdini-based procedural camera generation and data augmentation
-- **Root-Centered Training**: Model trained in root-centered coordinate space
+- **Root-Centered Coordinate System**: Trained and predicts in pelvis-centered space for consistent pose representation
 - **AMASS Motion Data**: High-quality motion capture from 6 diverse datasets
 - **End-to-End Inference**: MMPose COCO-WholeBody detection → SMPL mapping → 3D pose lifting
 - **Graph Transformer Architecture**: Combines self-attention with graph convolutions for 2D-to-3D pose lifting and 6D rotation prediction
-- **300K+ Training Samples**: With perfect 3D-2D correspondence
+- **3.5M+ Training Samples**: With perfect 3D-2D correspondence
 
 ## Performance
 
@@ -109,60 +110,83 @@ The inference script will:
 This project uses motion capture data from the AMASS archive:
 
 ```bibtex
-@inproceedings{AMASS:ICCV:2019,
-  title = {{AMASS}: Archive of Motion Capture as Surface Shapes},
-  author = {Mahmood, Naureen and Ghorbani, Nima and Troje, Nikolaus F. and Pons-Moll, Gerard and Black, Michael J.},
-  booktitle = {International Conference on Computer Vision},
-  pages = {5442--5451},
-  year = {2019}
+@inproceedings{AMASS:2019,
+  title={AMASS: Archive of Motion Capture as Surface Shapes},
+  author={Mahmood, Naureen and Ghorbani, Nima and F. Troje, Nikolaus and Pons-Moll, Gerard and Black, Michael J.},
+  booktitle = {The IEEE International Conference on Computer Vision (ICCV)},
+  year={2019},
+  month = {Oct},
+  url = {https://amass.is.tue.mpg.de},
+  month_numeric = {10}
 }
 ```
 
 #### ACCAD Dataset
 ```bibtex
 @misc{AMASS_ACCAD,
-  title = {{ACCAD MoCap Dataset}},
-  author = {{Advanced Computing Center for the Arts and Design}},
-  url = {https://accad.osu.edu/research/motion-lab/mocap-system-and-data}
+  title           = {{ACCAD MoCap Dataset}},
+  author          = {{Advanced Computing Center for the Arts and Design}},
+  url             = {https://accad.osu.edu/research/motion-lab/mocap-system-and-data}
+}
+```
+
+#### DanceDB Dataset
+```bibtex
+@article{AMASS_DanceDB,
+  author          = {Aristidou, Andreas and Shamir, Ariel and Chrysanthou, Yiorgos},
+  title           = {Digital Dance Ethnography: {O}rganizing Large Dance Collections},
+  journal         = {J. Comput. Cult. Herit.},
+  issue_date      = {January 2020},
+  volume          = {12},
+  number          = {4},
+  month           = nov,
+  year            = {2019},
+  issn            = {1556-4673},
+  articleno       = {29},
+  numpages        = {27},
+  url             = {https://doi.org/10.1145/3344383},
+  doi             = {10.1145/3344383},
+  acmid           = {},
+  publisher       = {Association for Computing Machinery},
+  address         = {New York, NY, USA},
 }
 ```
 
 #### CMU Dataset
 ```bibtex
 @misc{AMASS_CMU,
-  title = {{CMU MoCap Dataset}},
-  author = {{Carnegie Mellon University}},
-  url = {http://mocap.cs.cmu.edu}
+  title           = {{CMU MoCap Dataset}},
+  author          = {{Carnegie Mellon University}},
+  url             = {http://mocap.cs.cmu.edu}
 }
 ```
-License: Free for research use; may be included in commercial products but not resold directly. The database was created with funding from NSF EIA-0196217.
 
 #### KIT Dataset
 ```bibtex
-@inproceedings{AMASS_KIT_1,
-  author = {Christian Mandery and \"Omer Terlemez and Martin Do and Nikolaus Vahrenkamp and Tamim Asfour},
-  title = {The {KIT} Whole-Body Human Motion Database},
-  booktitle = {International Conference on Advanced Robotics (ICAR)},
-  pages = {329--336},
-  year = {2015}
+@inproceedings{AMASS_KIT-CNRS-EKUT-WEIZMANN,
+  author          = {Christian Mandery and \"Omer Terlemez and Martin Do and Nikolaus Vahrenkamp and Tamim Asfour},
+  title           = {The {KIT} Whole-Body Human Motion Database},
+  booktitle       = {International Conference on Advanced Robotics (ICAR)},
+  pages           = {329--336},
+  year            = {2015},
 }
 
-@article{AMASS_KIT_2,
-  author = {Christian Mandery and \"Omer Terlemez and Martin Do and Nikolaus Vahrenkamp and Tamim Asfour},
-  title = {Unifying Representations and Large-Scale Whole-Body Motion Databases for Studying Human Motion},
-  journal = {IEEE Transactions on Robotics},
-  volume = {32},
-  number = {4},
-  pages = {796--809},
-  year = {2016}
+@article{AMASS_KIT-CNRS-EKUT-WEIZMANN-2,
+  author          = {Christian Mandery and \"Omer Terlemez and Martin Do and Nikolaus Vahrenkamp and Tamim Asfour},
+  title           = {Unifying Representations and Large-Scale Whole-Body Motion Databases for Studying Human Motion},
+  pages           = {796--809},
+  volume          = {32},
+  number          = {4},
+  journal         = {IEEE Transactions on Robotics},
+  year            = {2016},
 }
 
-@inproceedings{AMASS_KIT_3,
-  author = {Franziska Krebs and Andre Meixner and Isabel Patzer and Tamim Asfour},
-  title = {The {KIT} Bimanual Manipulation Dataset},
-  booktitle = {IEEE/RAS International Conference on Humanoid Robots (Humanoids)},
-  pages = {499--506},
-  year = {2021}
+@inproceedings{AMASS_KIT-CNRS-EKUT-WEIZMANN-3,
+  author          = {Franziska Krebs and Andre Meixner and Isabel Patzer and Tamim Asfour},
+  title           = {The {KIT} Bimanual Manipulation Dataset},
+  booktitle       = {IEEE/RAS International Conference on Humanoid Robots (Humanoids)},
+  pages           = {499--506},
+  year            = {2021},
 }
 ```
 
@@ -173,14 +197,16 @@ Uses the same citations as KIT dataset (joint KIT-CNRS-EKUT-WEIZMANN collaborati
 
 ```bibtex
 @article{SMPL:2015,
-  author = {Loper, Matthew and Mahmood, Naureen and Romero, Javier and Pons-Moll, Gerard and Black, Michael J.},
-  title = {{SMPL}: A Skinned Multi-Person Linear Model},
-  journal = {ACM Trans. Graphics (Proc. SIGGRAPH Asia)},
-  volume = {34},
-  number = {6},
-  pages = {248:1--248:16},
-  year = {2015}
-}
+      author = {Loper, Matthew and Mahmood, Naureen and Romero, Javier and Pons-Moll, Gerard and Black, Michael J.},
+      title = {{SMPL}: A Skinned Multi-Person Linear Model},
+      journal = {ACM Trans. Graphics (Proc. SIGGRAPH Asia)},
+      month = oct,
+      number = {6},
+      pages = {248:1--248:16},
+      publisher = {ACM},
+      volume = {34},
+      year = {2015}
+    }
 ```
 
 ### 3DPW Dataset
@@ -189,10 +215,11 @@ Evaluation performed on the 3D Poses in the Wild dataset:
 
 ```bibtex
 @inproceedings{vonMarcard2018,
-  title = {Recovering Accurate 3D Human Pose in The Wild Using IMUs and a Moving Camera},
-  author = {von Marcard, Timo and Henschel, Roberto and Black, Michael and Rosenhahn, Bodo and Pons-Moll, Gerard},
-  booktitle = {European Conference on Computer Vision (ECCV)},
-  year = {2018}
+title = {Recovering Accurate 3D Human Pose in The Wild Using IMUs and a Moving Camera},
+author = {von Marcard, Timo and Henschel, Roberto and Black, Michael and Rosenhahn, Bodo and Pons-Moll, Gerard},
+booktitle = {European Conference on Computer Vision (ECCV)},
+year = {2018},
+month = {sep}
 }
 ```
 
@@ -202,18 +229,18 @@ The model uses a **Graph Transformer Encoder** architecture that combines multi-
 
 **Key References:**
 ```bibtex
-@inproceedings{lin2021meshgraphormer,
-  title={Mesh Graphormer},
+@inproceedings{lin2021mesh,
+  title={Mesh graphormer},
   author={Lin, Kevin and Wang, Lijuan and Liu, Zicheng},
-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  booktitle={Proceedings of the IEEE/CVF international conference on computer vision},
   pages={12939--12948},
   year={2021}
 }
 
 @inproceedings{zhao2022graformer,
-  title={GraFormer: Graph Convolution Transformer for 3D Pose Estimation},
-  author={Zhao, Weixi and Tian, Yunjie and Ye, Qixiang and Jiao, Jianbin and Wang, Weiqiang},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title={Graformer: Graph-oriented transformer for 3d pose estimation},
+  author={Zhao, Weixi and Wang, Weiqiang and Tian, Yunjie},
+  booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
   pages={20438--20447},
   year={2022}
 }
@@ -225,10 +252,11 @@ If you use this work, please cite:
 
 ```bibtex
 @software{HSyn9DHPE2025,
-  title = {HSyn9DHPE: 3D Position + 6D Rotation Human Pose Estimation},
+  title = {HSyn9DHPE: 9D Human Pose Estimation with Houdini Synthetic Data},
   author = {Compagnucci, Edoardo},
   year = {2025},
-  url = {https://github.com/edoardocompagnucci/HSyn9DHPE}
+  url = {https://github.com/edoardocompagnucci/HSyn9DHPE},
+  note = {For non-commercial use only}
 }
 ```
 
