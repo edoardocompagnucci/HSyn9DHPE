@@ -8,7 +8,7 @@ data/splits/
 data/AMASS/
 
 # Model checkpoints and training outputs
-checkpoints/
+checkpoints/best_model_57mm.pth
 outputs/
 experiments/
 

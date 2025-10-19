@@ -19,11 +19,11 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 - **Graph Transformer Architecture**: Combines self-attention with graph convolutions for 2D-to-3D pose lifting and 6D rotation prediction
 - **3.5M+ Training Samples**: With perfect 3D-2D correspondence
 
-## License & Usage
+## License
 
-- **Code:** Licensed under Apache-2.0 (see [LICENSE](./LICENSE)). Free for commercial and non-commercial use.
-- **Model weights:** If released, governed by [MODEL_LICENSE.txt](./MODEL_LICENSE.txt) (Non-Commercial Research-Only with prohibited uses and takedown provisions).
-- **Data:** This repo does **not** redistribute AMASS or SMPL (nor images/clips derived from them). Users must obtain them from the official sources and accept their licenses.
+- **Code:** Apache-2.0 (commercial use OK) - see [LICENSE](./LICENSE)
+- **Weights:** Non-commercial only - see [MODEL_LICENSE.txt](./MODEL_LICENSE.txt)
+- **Data:** Not redistributed - obtain from [AMASS](https://amass.is.tue.mpg.de/) and [SMPL](https://smpl.is.tue.mpg.de/)
 
 ## Performance
 
@@ -108,16 +108,6 @@ The inference script will:
 4. Predict 3D positions and 6D rotations using the trained model
 5. Apply optional 3D smoothing (Savitzky-Golay + SLERP)
 6. Save results as JSON files for further processing
-
-## Data Access
-
-This repo does **not** redistribute AMASS or SMPL data. Obtain them from official sources:
-- **AMASS**: https://amass.is.tue.mpg.de/
-- **SMPL**: https://smpl.is.tue.mpg.de/
-
-## Model Weights
-
-Weights are not currently released. If released in the future, they will be governed by [MODEL_LICENSE.txt](./MODEL_LICENSE.txt) (Non-Commercial Research-Only).
 
 ## Dataset Attribution
 
