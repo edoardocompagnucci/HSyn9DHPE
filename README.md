@@ -22,8 +22,11 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 ## License
 
 - **Code:** Apache-2.0 (commercial use OK) - see [LICENSE](./LICENSE)
-- **Weights:** Non-commercial only - see [MODEL_LICENSE.txt](./MODEL_LICENSE.txt)
-- **Data:** Not redistributed - obtain from [AMASS](https://amass.is.tue.mpg.de/) and [SMPL](https://smpl.is.tue.mpg.de/)
+- **Weights:** If/when released, governed by [MODEL_LICENSE.txt](./MODEL_LICENSE.txt)
+  - **Non-Commercial Research-Only** (prohibited uses: commercial, surveillance, military, pornographic, defamatory)
+  - Includes **takedown/consent clause** for rights/consent issues
+  - **No third-party data included** - users must obtain [AMASS](https://amass.is.tue.mpg.de/) and [SMPL](https://smpl.is.tue.mpg.de/) separately
+- **Data:** This repo does **not redistribute** AMASS or SMPL data under any circumstances
 
 ## Performance
 
