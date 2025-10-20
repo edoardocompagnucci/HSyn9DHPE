@@ -14,7 +14,7 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 - **Full Pose Estimation**: Predicts both 3D joint positions and 6D rotation representation
 - **Synthetic Data Pipeline**: Houdini-based procedural camera generation and data augmentation
 - **Root-Centered Coordinate System**: Trained and predicts in pelvis-centered space for consistent pose representation
-- **AMASS Motion Data**: High-quality motion capture from 6 diverse datasets
+- **AMASS Motion Data**: High-quality motion capture from 7 diverse datasets
 - **End-to-End Inference**: MMPose COCO-WholeBody detection → SMPL mapping → 3D pose lifting
 - **Graph-Oriented Transformer**: Attention → Laplacian-polynomial graph mixing (GCN-normalized adjacency) → FFN; joint-level (24 joints); dual heads for 3D joints and 6D rotations
 - **3.5M+ Training Samples**: With perfect 3D-2D correspondence
@@ -85,7 +85,7 @@ I used a **graph-oriented Transformer** on the human-pose joint graph. Each laye
 
 ### Data Generation
 
-1. **AMASS Sequences**: Load motion capture data from 6 AMASS datasets (ACCAD, CMU, Transitions, DanceDB, KIT, WEIZMANN)
+1. **AMASS Sequences**: Load motion capture data from 7 AMASS datasets (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub, GRAB)
 2. **Houdini Processing**:
    - Read joint rotation angles from AMASS sequences
    - Apply rotations to base SMPL skeleton (24 joints)
@@ -162,11 +162,11 @@ The inference script will:
 
 This project uses data from the following sources:
 
-- **[AMASS](https://amass.is.tue.mpg.de/)**
-- **[SMPL](https://smpl.is.tue.mpg.de/)**
-- **[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/)**
+- **[AMASS](https://amass.is.tue.mpg.de/)** - Motion capture archive (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub, GRAB)
+- **[SMPL](https://smpl.is.tue.mpg.de/)** - Human body model
+- **[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/)** - Evaluation benchmark
 
-**Complete BibTeX entries:** See [CITATIONS.md](./CITATIONS.md) for all dataset and benchmark citations.
+**Complete BibTeX entries:** See [CITATIONS.md](./CITATIONS.md) and [amass.bib](./amass.bib) for all dataset citations.
 
 ## Citation
 
@@ -185,7 +185,7 @@ If you use this work, please cite:
 ## Acknowledgments
 
 - AMASS team for the motion capture archive
-- Individual dataset contributors: ACCAD, CMU, KIT, WEIZMANN, Transitions, DanceDB
+- Individual dataset contributors: ACCAD, CMU, KIT, BMLrub, GRAB, Transitions, DanceDB
 - SMPL team for the human body model
 - 3DPW dataset creators for evaluation benchmark
 - MMPose library for 2D pose detection
