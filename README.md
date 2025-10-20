@@ -22,11 +22,9 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 ## License
 
 - **Code:** Apache-2.0 (commercial use OK) - see [LICENSE](./LICENSE)
-- **Weights:** If/when released, governed by [MODEL_LICENSE.txt](./MODEL_LICENSE.txt)
-  - **Non-Commercial Research-Only** (prohibited uses: commercial, surveillance, military, pornographic, defamatory)
-  - Includes **takedown/consent clause** for rights/consent issues
-  - **No third-party data included** - users must obtain [AMASS](https://amass.is.tue.mpg.de/) and [SMPL](https://smpl.is.tue.mpg.de/) separately
-- **Data:** This repo does **not redistribute** AMASS or SMPL data under any circumstances
+- **Weights:** Non-commercial research-only (if/when released)
+  - See [MODEL_LICENSE.txt](./MODEL_LICENSE.txt) for full terms including prohibited uses and takedown clause
+- **Data:** AMASS and SMPL not included - users must obtain separately from original sources
 
 ## Performance
 
@@ -37,7 +35,7 @@ Evaluated on 3DPW dataset:
 
 ## Architecture
 
-We use a **graph-oriented Transformer** on the human-pose joint graph. Each layer does:
+I used a **graph-oriented Transformer** on the human-pose joint graph. Each layer does:
 
 - **Self-attention** (with residuals + LayerNorm)
 - **Graph mixing** along the skeleton using a **normalized adjacency** (multi-hop propagation over neighboring joints)
@@ -164,10 +162,9 @@ The inference script will:
 
 This project uses data from the following sources:
 
-- **[AMASS](https://amass.is.tue.mpg.de/)** - Archive of Motion Capture as Surface Shapes (Mahmood et al., 2019)
-  - ACCAD, CMU, Transitions, DanceDB, KIT, WEIZMANN datasets
-- **[SMPL](https://smpl.is.tue.mpg.de/)** - Skinned Multi-Person Linear Model (Loper et al., 2015)
-- **[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/)** - 3D Poses in the Wild evaluation benchmark (von Marcard et al., 2018)
+- **[AMASS](https://amass.is.tue.mpg.de/)**
+- **[SMPL](https://smpl.is.tue.mpg.de/)**
+- **[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/)**
 
 **Complete BibTeX entries:** See [CITATIONS.md](./CITATIONS.md) for all dataset and benchmark citations.
 
