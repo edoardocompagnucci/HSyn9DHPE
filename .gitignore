@@ -70,10 +70,6 @@ conda-meta/
 ehthumbs.db
 Thumbs.db
 
-# Claude Code workspace
-.claude/
-.claudeignore
-
 # System files
 nul
 *.tmp
