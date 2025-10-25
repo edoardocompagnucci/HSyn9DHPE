@@ -3,7 +3,7 @@
 **HSyn9DHPE** = **H**oudini **Syn**thetic Data for **9D** **H**uman **P**ose **E**stimation
 (9D = 3D joint positions + 6D rotation representation)
 
-A graph-oriented transformer approach for 2D-to-3D human pose estimation achieving **57.2mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
+A graph-oriented transformer approach for 2D-to-3D human pose estimation achieving **56.9mm PA-MPJPE** on the 3DPW dataset using Houdini-generated synthetic data from AMASS motion capture sequences.
 
 ## Overview
 
