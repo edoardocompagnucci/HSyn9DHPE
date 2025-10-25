@@ -9,6 +9,8 @@ A graph-oriented transformer approach for 2D-to-3D human pose estimation achievi
 
 This project implements a data-efficient approach to full pose estimation (3D joint positions + 6D rotation representation) by leveraging synthetic data generated through a custom Houdini pipeline. The pipeline processes AMASS motion capture sequences to create diverse training samples with perfect 3D-2D correspondence through procedural camera generation.
 
+![HSyn9DHPE Inference Demo](images/hsyn9dhpe_inference.gif)
+
 ### Key Features
 
 - **Full Pose Estimation**: Predicts both 3D joint positions and 6D rotation representation
@@ -47,35 +49,70 @@ I used a **graph-oriented Transformer** on the human-pose joint graph. Each laye
 <summary><b>Key References</b> (click to expand)</summary>
 
 ```bibtex
-@inproceedings{Vaswani2017Attention,
-  title={Attention Is All You Need},
-  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, {\L}ukasz and Polosukhin, Illia},
-  booktitle={NeurIPS}, year={2017}
+@inproceedings{DBLP:conf/nips/VaswaniSPUJGKP17,
+  author       = {Ashish Vaswani and
+                  Noam Shazeer and
+                  Niki Parmar and
+                  Jakob Uszkoreit and
+                  Llion Jones and
+                  Aidan N. Gomez and
+                  Lukasz Kaiser and
+                  Illia Polosukhin},
+  title        = {Attention is All you Need},
+  booktitle    = {{NIPS}},
+  pages        = {5998--6008},
+  year         = {2017}
 }
-@inproceedings{Defferrard2016ChebNet,
-  title={Convolutional Neural Networks on Graphs with Fast Localized Spectral Filtering},
-  author={Defferrard, Micha{\"e}l and Bresson, Xavier and Vandergheynst, Pierre},
-  booktitle={NeurIPS}, year={2016}
+@inproceedings{DBLP:conf/nips/DefferrardBV16,
+  author       = {Micha{\"{e}}l Defferrard and
+                  Xavier Bresson and
+                  Pierre Vandergheynst},
+  title        = {Convolutional Neural Networks on Graphs with Fast Localized Spectral
+                  Filtering},
+  booktitle    = {{NIPS}},
+  pages        = {3837--3845},
+  year         = {2016}
 }
-@inproceedings{Kipf2017GCN,
-  title={Semi-Supervised Classification with Graph Convolutional Networks},
-  author={Kipf, Thomas N. and Welling, Max},
-  booktitle={ICLR}, year={2017}
+@inproceedings{DBLP:conf/iclr/KipfW17,
+  author       = {Thomas N. Kipf and
+                  Max Welling},
+  title        = {Semi-Supervised Classification with Graph Convolutional Networks},
+  booktitle    = {{ICLR} (Poster)},
+  publisher    = {OpenReview.net},
+  year         = {2017}
 }
-@inproceedings{Zhao2022GraFormer,
-  title={GraFormer: Graph-Oriented Transformer for 3D Pose Estimation},
-  author={Zhao, Wen and Tian, Yongjian and Ye, Qixiang and Jiao, Jianbin and Wang, Wenming},
-  booktitle={CVPR}, year={2022}
+@inproceedings{DBLP:conf/cvpr/ZhaoWT22,
+  author       = {Weixi Zhao and
+                  Weiqiang Wang and
+                  Yunjie Tian},
+  title        = {GraFormer: Graph-oriented Transformer for 3D Pose Estimation},
+  booktitle    = {{CVPR}},
+  pages        = {20406--20415},
+  publisher    = {{IEEE}},
+  year         = {2022}
 }
-@inproceedings{Martinez2017SimpleBaseline,
-  title={A Simple Yet Effective Baseline for 3D Human Pose Estimation},
-  author={Martinez, Julieta and Hossain, Rayat and Romero, Javier and Little, James J.},
-  booktitle={ICCV}, year={2017}
+@inproceedings{DBLP:conf/iccv/MartinezHRL17,
+  author       = {Julieta Martinez and
+                  Rayat Hossain and
+                  Javier Romero and
+                  James J. Little},
+  title        = {A Simple Yet Effective Baseline for 3d Human Pose Estimation},
+  booktitle    = {{ICCV}},
+  pages        = {2659--2668},
+  publisher    = {{IEEE} Computer Society},
+  year         = {2017}
 }
-@inproceedings{Zhou2019Rotation6D,
-  title={On the Continuity of Rotation Representations in Neural Networks},
-  author={Zhou, Yi and Barnes, Connelly and Lu, Jingwan and Yang, Jimei and Li, Hao},
-  booktitle={CVPR}, year={2019}
+@inproceedings{DBLP:conf/cvpr/ZhouBLYL19,
+  author       = {Yi Zhou and
+                  Connelly Barnes and
+                  Jingwan Lu and
+                  Jimei Yang and
+                  Hao Li},
+  title        = {On the Continuity of Rotation Representations in Neural Networks},
+  booktitle    = {{CVPR}},
+  pages        = {5745--5753},
+  publisher    = {Computer Vision Foundation / {IEEE}},
+  year         = {2019}
 }
 ```
 
@@ -85,7 +122,7 @@ I used a **graph-oriented Transformer** on the human-pose joint graph. Each laye
 
 ### Data Generation
 
-1. **AMASS Sequences**: Load motion capture data from 7 AMASS datasets (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub, GRAB)
+1. **AMASS Sequences**: Load motion capture data from 6 AMASS datasets (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub)
 2. **Houdini Processing**:
    - Read joint rotation angles from AMASS sequences
    - Apply rotations to base SMPL skeleton (24 joints)
@@ -106,6 +143,8 @@ The Houdini pipeline generates diverse synthetic cameras using procedural sampli
 - **Focal Length**: Distance-correlated (16-135mm) for realistic framing
 - **Artistic Shots**: 5% extreme low/high angle perspectives
 
+![Data Generation Pipeline](images/hsyn9dhpe_data_generation.gif)
+
 ### Inference Pipeline
 
 1. **2D Detection**: Run MMPose RTMPose on input video to extract COCO-WholeBody keypoints
@@ -118,7 +157,6 @@ The Houdini pipeline generates diverse synthetic cameras using procedural sampli
 **Outputs:**
 - `results_frame.json`: Complete pose data with 3D positions, 6D rotations, and 3x3 rotation matrices
 - `houdini_frames/`: Per-frame JSON files for Houdini import
-- `visualizations_3d/`: Optional 3D pose visualizations (with `--visualize_3d` flag)
 
 ## Installation
 
@@ -146,23 +184,38 @@ mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 -
 ### Inference
 
 ```bash
-cd src
-python inference.py path/to/video.mp4 path/to/output/ --checkpoint path/to/checkpoint.pth --smooth_3d
+python src/inference.py path/to/video.mp4 path/to/output/ --checkpoint checkpoints/model.pth --smooth_3d
 ```
+
+**Optional smoothing flags:**
+- `--smooth_detections`: Apply 2D detection smoothing to remove outliers
+- `--smooth_3d`: Apply 3D pose smoothing (Savitzky-Golay + SLERP)
+
+Additional smoothing parameters: `--max_displacement`, `--min_confidence`, `--use_kalman`, `--detection_smooth_window`, `--smooth_window` (see `python inference.py --help`)
 
 The inference script will:
 1. Extract frames from video
 2. Run MMPose to detect 2D keypoints (COCO-WholeBody format)
 3. Map keypoints to SMPL skeleton
 4. Predict 3D positions and 6D rotations using the trained model
-5. Apply optional 3D smoothing (Savitzky-Golay + SLERP)
+5. Apply optional smoothing (2D detections and/or 3D poses)
 6. Save results as JSON files for further processing
+
+### Visualizing and Using the Results
+
+To visualize predictions in Houdini, copy `otls/Hsyn9DHPE_loader.1.0.hdalc` to `Documents\houdini<version>\otls\` and restart Houdini. The HDA loads JSON files from the `houdini_frames/` output directory.
+
+![Houdini HDA Loader](images/hsyn9dhpe_loader.png)
+
+**Post-Processing Tip:** After loading the inference frames, you can use the rest SMPL skeleton and enforce full body IK to prevent jittery rotations in more complex motions or on failed 2D detections.
+
+![Post-Processing with IK](images/hsyn9dhpe_full_body_IK.png)
 
 ## Dataset Attribution
 
 This project uses data from the following sources:
 
-- **[AMASS](https://amass.is.tue.mpg.de/)** - Motion capture archive (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub, GRAB)
+- **[AMASS](https://amass.is.tue.mpg.de/)** - Motion capture archive (ACCAD, CMU, Transitions, DanceDB, KIT, BMLrub)
 - **[SMPL](https://smpl.is.tue.mpg.de/)** - Human body model
 - **[3DPW](https://virtualhumans.mpi-inf.mpg.de/3DPW/)** - Evaluation benchmark
 
@@ -185,7 +238,7 @@ If you use this work, please cite:
 ## Acknowledgments
 
 - AMASS team for the motion capture archive
-- Individual dataset contributors: ACCAD, CMU, KIT, BMLrub, GRAB, Transitions, DanceDB
+- Individual dataset contributors: ACCAD, CMU, KIT, BMLrub, Transitions, DanceDB
 - SMPL team for the human body model
 - 3DPW dataset creators for evaluation benchmark
 - MMPose library for 2D pose detection

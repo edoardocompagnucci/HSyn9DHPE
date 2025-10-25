@@ -21,7 +21,7 @@ from data.mixed_pose_dataset import coco_wholebody_to_smpl_with_confidence
 from mmpose.apis import MMPoseInferencer
 
 
-def extract_frames_from_video(video_path, output_dir, skip_frames=1, max_frames=None):
+def extract_frames_from_video(video_path, output_dir):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise ValueError(f"Cannot open video: {video_path}")
@@ -39,27 +39,20 @@ def extract_frames_from_video(video_path, output_dir, skip_frames=1, max_frames=
     frames = []
     frame_paths = []
     frame_count = 0
-    saved_count = 0
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        if frame_count % skip_frames == 0:
-            frame_filename = frames_dir / f"frame_{frame_count:05d}.jpg"
-            cv2.imwrite(str(frame_filename), frame)
-            frames.append(frame)
-            frame_paths.append(str(frame_filename))
-            saved_count += 1
-
-            if max_frames and saved_count >= max_frames:
-                break
-
+        frame_filename = frames_dir / f"frame_{frame_count:05d}.jpg"
+        cv2.imwrite(str(frame_filename), frame)
+        frames.append(frame)
+        frame_paths.append(str(frame_filename))
         frame_count += 1
 
     cap.release()
-    print(f"Extracted {saved_count} frames")
+    print(f"Extracted {frame_count} frames")
 
     return frames, frame_paths, {'width': width, 'height': height, 'fps': fps}
 
@@ -183,7 +176,9 @@ def interpolate_missing_detections(joints_2d_list):
 
 
 def run_3d_pose_lifting(detections, model, normalizer, device='cuda',
-                        image_shape=(1920, 1080), smooth_detections=False):
+                        image_shape=(1920, 1080), smooth_detections=False,
+                        max_displacement_px=100.0, min_confidence=0.2,
+                        use_kalman=False, detection_smooth_window=5):
     joints_2d_list = []
     confidence_list = []
 
@@ -201,10 +196,10 @@ def run_3d_pose_lifting(detections, model, normalizer, device='cuda',
     if smooth_detections:
         print("Smoothing 2D detections to remove outliers...")
         smoother = DetectionSmoother(
-            max_displacement_px=100.0,
-            min_confidence=0.2,
-            use_kalman=False,
-            smoothing_window=5
+            max_displacement_px=max_displacement_px,
+            min_confidence=min_confidence,
+            use_kalman=use_kalman,
+            smoothing_window=detection_smooth_window
         )
         joints_2d_filled, bad_frames = smoother.smooth_detections(
             joints_2d_filled, confidence_filled
@@ -391,18 +386,20 @@ def main():
     parser.add_argument('output_dir', type=str, help='Output directory for results')
     parser.add_argument('--checkpoint', type=str, required=True,
                         help='Path to per-frame model checkpoint (e.g., 57mm model)')
-    parser.add_argument('--skip_frames', type=int, default=1,
-                        help='Process every Nth frame (default: 1)')
-    parser.add_argument('--max_frames', type=int, default=None,
-                        help='Maximum frames to process (default: all)')
-    parser.add_argument('--visualize_3d', action='store_true',
-                        help='Generate 3D pose visualizations')
     parser.add_argument('--smooth_detections', action='store_true',
                         help='Apply 2D detection smoothing to remove outliers')
+    parser.add_argument('--max_displacement', type=float, default=100.0,
+                        help='Max pixel displacement between frames for 2D smoothing (default: 100.0)')
+    parser.add_argument('--min_confidence', type=float, default=0.2,
+                        help='Min confidence threshold for 2D smoothing (default: 0.2)')
+    parser.add_argument('--use_kalman', action='store_true',
+                        help='Use Kalman filtering instead of moving average for 2D smoothing')
+    parser.add_argument('--detection_smooth_window', type=int, default=5,
+                        help='Window size for 2D detection smoothing (default: 5)')
     parser.add_argument('--smooth_3d', action='store_true',
                         help='Apply 3D pose smoothing (Savitzky-Golay for positions, SLERP for rotations)')
     parser.add_argument('--smooth_window', type=int, default=9,
-                        help='Smoothing window size (must be odd, default: 9)')
+                        help='Smoothing window size for 3D smoothing (must be odd, default: 9)')
 
     args = parser.parse_args()
 
@@ -422,7 +419,7 @@ def main():
 
     print("\nExtracting frames from video...")
     frames, frame_paths, video_info = extract_frames_from_video(
-        args.video_path, args.output_dir, args.skip_frames, args.max_frames
+        args.video_path, args.output_dir
     )
 
     print("\nRunning 2D pose detection...")
@@ -444,7 +441,11 @@ def main():
     poses_3d = run_3d_pose_lifting(
         detections, model, normalizer, str(device),
         image_shape=(video_info['width'], video_info['height']),
-        smooth_detections=args.smooth_detections
+        smooth_detections=args.smooth_detections,
+        max_displacement_px=args.max_displacement,
+        min_confidence=args.min_confidence,
+        use_kalman=args.use_kalman,
+        detection_smooth_window=args.detection_smooth_window
     )
 
     successful_3d = sum(1 for p in poses_3d if p is not None)
@@ -455,19 +456,6 @@ def main():
         poses_3d = smooth_3d_poses(poses_3d, window_length=args.smooth_window, polyorder=3)
     else:
         print("\nSkipping 3D smoothing (use --smooth_3d to enable)")
-
-    if args.visualize_3d:
-        vis_3d_dir = output_path / 'visualizations_3d'
-        vis_3d_dir.mkdir(exist_ok=True)
-        print("\nGenerating 3D visualizations...")
-        for i, pose_data in enumerate(tqdm(poses_3d, desc="Saving 3D visualizations")):
-            if pose_data is not None:
-                vis_path = vis_3d_dir / f"frame_{i:05d}_3d.png"
-                visualize_3d_pose(
-                    pose_data['joints_3d'],
-                    save_path=str(vis_path),
-                    title=f"Frame {i}"
-                )
 
     print("\nSaving results...")
 
@@ -533,8 +521,6 @@ def main():
     print(f"\nResults saved to: {output_path}")
     print(f"  - results_frame.json: Complete pose data")
     print(f"  - houdini_frames/: Per-frame JSON files for Houdini")
-    if args.visualize_3d:
-        print(f"  - visualizations_3d/: 3D pose visualizations")
     if args.smooth_3d:
         print("\n3D smoothing applied (Savitzky-Golay + SLERP)")
     else:

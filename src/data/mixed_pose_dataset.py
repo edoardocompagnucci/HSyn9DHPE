@@ -383,12 +383,22 @@ class SyntheticPoseAdapter(Dataset):
             try:
                 if seq_name not in self.sequence_cache:
                     seq_path = os.path.join(self.annotations_path, f"{seq_name}.npz")
-                    self.sequence_cache[seq_name] = np.load(seq_path, allow_pickle=False, mmap_mode='r')
+                    with np.load(seq_path, allow_pickle=False) as npz_file:
+                        cached_data = {
+                            'joints_2d': npz_file['joints_2d'],
+                            'joints_3d': npz_file['joints_3d'],
+                            'rot_mats': npz_file['rot_mats'],
+                            'visibility': npz_file['visibility'],
+                            'K': npz_file['K'],
+                            'R': npz_file['R'],
+                            't': npz_file['t'],
+                            'res': npz_file['res'],
+                            'num_frames': npz_file['num_frames']
+                        }
+                    self.sequence_cache[seq_name] = cached_data
 
                     if len(self.sequence_cache) > 5:
                         oldest = list(self.sequence_cache.keys())[0]
-                        if hasattr(self.sequence_cache[oldest], 'close'):
-                            self.sequence_cache[oldest].close()
                         del self.sequence_cache[oldest]
 
                 data = self.sequence_cache[seq_name]

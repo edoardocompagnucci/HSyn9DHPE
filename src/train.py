@@ -84,7 +84,7 @@ def compute_joint_group_errors(pred_pos, target_pos, visibility_mask=None):
 
 
 def main():
-    RESUME_FROM = None
+    RESUME_FROM = r"checkpoints\train_20251022_155746_graphformer"
     
     # Paths
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -92,8 +92,8 @@ def main():
     CHECKPOINT_ROOT = "checkpoints"
 
     # Training hyperparameters
-    BATCH_SIZE = 64
-    ACCUMULATION_STEPS = 2
+    BATCH_SIZE = 128
+    ACCUMULATION_STEPS = 1
     DROPOUT_RATE = 0.1
     LEARNING_RATE = 8e-5
     WEIGHT_DECAY = 1e-4
@@ -156,8 +156,8 @@ def main():
     
     # Create data loaders with optimizations
     train_loader = DataLoader(
-        train_dataset, 
-        batch_size=BATCH_SIZE, 
+        train_dataset,
+        batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=6,
         pin_memory=True,
@@ -234,7 +234,7 @@ def main():
             training_history = checkpoint.get('training_history', [])
             
             print(f"Resumed from epoch {checkpoint['epoch']}")
-            print(f"Best PA-MPJPE so far: {best_val_pa_mpjpe:.2f}mm at epoch {best_epoch}")
+            print(f"Best PA-MPJPE so far: {best_val_pa_mpjpe*1000:.2f}mm at epoch {best_epoch}")
             print(f"Early stopping counter: {early_stopping_counter}/{early_stopping_patience}")
         else:
             print(f"No valid checkpoint found in {experiment_dir}, starting fresh")

@@ -17,11 +17,11 @@ class GraphMLP(nn.Module):
             nn.Linear(dim, dim)
         )
 
-    def forward(self, x: torch.Tensor, laplacian: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, normalized_adj: torch.Tensor) -> torch.Tensor:
         out = x
         Tx = x
         for k in range(self.order):
-            Tx = laplacian @ Tx
+            Tx = normalized_adj @ Tx
             out = out + Tx @ self.theta[k]
         return self.proj(out)
 
@@ -44,11 +44,11 @@ class PoseEncoderLayer(nn.Module):
         self.norm3 = nn.LayerNorm(dim)
         self.drop = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, laplacian: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, normalized_adj: torch.Tensor) -> torch.Tensor:
         y, _ = self.self_attn(x, x, x)
         x = self.norm1(x + self.drop(y))
 
-        y = self.graph_mlp(x, laplacian)
+        y = self.graph_mlp(x, normalized_adj)
         x = self.norm2(x + self.drop(y))
 
         y = self.ffn(x)
@@ -90,8 +90,8 @@ class GraphFormerPose(nn.Module):
         self.joint_embed = nn.Parameter(torch.randn(num_joints, dim) * 0.02)
 
         self.register_buffer(
-            "laplacian",
-            self._build_laplacian(num_joints),
+            "normalized_adj",
+            self._build_normalized_adjacency(num_joints),
             persistent=False
         )
 
@@ -129,7 +129,7 @@ class GraphFormerPose(nn.Module):
                 nn.init.constant_(module.bias, 0)
                 nn.init.constant_(module.weight, 1.0)
 
-    def _build_laplacian(self, J: int) -> torch.Tensor:
+    def _build_normalized_adjacency(self, J: int) -> torch.Tensor:
         A = torch.eye(J)
         
         for i, j in self._EDGES:
@@ -148,7 +148,7 @@ class GraphFormerPose(nn.Module):
         x = self.input_proj(keypoints_2d) + self.joint_embed
 
         for layer in self.layers:
-            x = layer(x, self.laplacian)
+            x = layer(x, self.normalized_adj)
 
         positions_3d = self.position_head(x)
         orientations_6d = self.rotation_head(x)

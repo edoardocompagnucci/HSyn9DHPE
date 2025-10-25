@@ -6,9 +6,8 @@ data/annotations/
 data/annotations_tmp/
 data/splits/
 data/AMASS/
-
+inference_video/
 # Model checkpoints and training outputs
-checkpoints/best_model_57mm.pth
 outputs/
 experiments/
 
@@ -104,6 +103,10 @@ debug.log
 *.png
 *.gif
 !README_assets/
+!images/*.png
+!images/*.gif
+!images/*.jpg
+!images/*.jpeg
 
 # Temporary and cache directories
 tmp/
