@@ -31,9 +31,9 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 ## Performance
 
 Evaluated on 3DPW dataset:
-- **PA-MPJPE**: 57.2mm (Procrustes-aligned mean per-joint position error)
-- **MPJPE**: 120mm (mean per-joint position error)
-- **MPJAE**: 36° (mean per-joint angle error)
+- **PA-MPJPE**: 56.9mm (Procrustes-aligned mean per-joint position error)
+- **MPJPE**: 122mm (mean per-joint position error)
+- **MPJAE**: 36.5° (mean per-joint angle error)
 
 ## Architecture
 
