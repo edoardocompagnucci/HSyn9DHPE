@@ -16,9 +16,9 @@ This project implements a data-efficient approach to full pose estimation (3D jo
 - **Full Pose Estimation**: Predicts both 3D joint positions and 6D rotation representation
 - **Synthetic Data Pipeline**: Houdini-based procedural camera generation and data augmentation
 - **Root-Centered Coordinate System**: Trained and predicts in pelvis-centered space for consistent pose representation
-- **AMASS Motion Data**: High-quality motion capture from 7 diverse datasets
+- **AMASS Motion Data**: High-quality motion capture from 6 diverse datasets
 - **End-to-End Inference**: MMPose COCO-WholeBody detection → SMPL mapping → 3D pose lifting
-- **Graph-Oriented Transformer**: Attention → Laplacian-polynomial graph mixing (GCN-normalized adjacency) → FFN; joint-level (24 joints); dual heads for 3D joints and 6D rotations
+- **Graph-Oriented Transformer**: Attention → adjacency-polynomial (GCN-normalized, with self-loops) → FFN; joint-level (24 joints); dual heads for 3D joints and 6D rotations
 - **3.5M+ Training Samples**: With perfect 3D-2D correspondence
 
 ## License
@@ -174,8 +174,8 @@ mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-wholebody-384x288 -
 ```
 
 ### Requirements
-- Python 3.10
-- PyTorch 2.1.0 with CUDA 11.8
+- Python 3.8
+- PyTorch 2.0.1 with CUDA 11.8
 - MMPose ≥1.3.0 (COCO-WholeBody models)
 - OpenCV, NumPy, Matplotlib, SciPy
 
