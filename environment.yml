@@ -19,7 +19,8 @@ dependencies:
   - pip:
       # OpenMMLab installer
       - openmim>=0.3.2
-      - mmcv==2.1.0
+
+      # MMPose ecosystem (mmcv installed separately via mim after env creation)
       - mmengine==0.8.4
       - mmdet>=3.3.0
       - mmpose>=1.3.0
